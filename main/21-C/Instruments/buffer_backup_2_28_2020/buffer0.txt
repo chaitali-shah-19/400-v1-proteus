@@ -1,0 +1,27 @@
+int iAxis
+iAxis=0
+
+ENABLE iAxis
+WAIT 1000
+
+VEL(iAxis)=10
+ACC(iAxis)=100
+DEC(iAxis)=100
+JERK(iAxis)=1000
+
+FDEF(iAxis).#LL=0									! Disable the axis left limit default response.
+FDEF(iAxis).#RL=0									! Disable the axis right limit default response.
+JOG (iAxis),+										! Move to the left limit switch.
+TILL FAULT(iAxis).#RL									! Wait for the left limit switch activation.
+HALT (iAxis)										! Stop motor.
+TILL ^MST(iAxis).#MOVE									! Wait until motor stop moving.
+JOG (iAxis),-										! Move to the encoder index.
+TILL ^FAULT(iAxis).#RL									! Wait for the left limit release.
+HALT (iAxis)										! Stop motor.
+TILL ^MST(iAxis).#MOVE									! Wait until motor stop moving.
+SET FPOS(iAxis)=0							! Set axis origin to the position of the index.
+PTP/e (iAxis),-50										! Move to the origin.
+FDEF(iAxis).#LL=1									! Enable the axis left limit default response
+FDEF(iAxis).#RL=1									! Enable the axis right limit default response
+
+STOP

@@ -1,0 +1,20 @@
+REAL POS_GROUND;
+REAL WAIT_TIME;
+REAL POS_TIME;
+
+POS_GROUND = V0; 	!set "start" position
+WAIT_TIME = V1; 	!time to wait
+POS_TIME = V2;		!time for relaxation
+
+TILL IN0.3= 1		!Wait for motion trigger
+
+CALL G_TO_C_TO_G	!executes motion step 1 (detailed below)
+STOP
+
+G_TO_C_TO_G:
+WAIT WAIT_TIME !WAIt for laser and MW irradiation
+OUT(0).2=1 ! Trigger NMR
+WAIT 100
+OUT(0).2=0
+
+RET			!Returns to call statement, continues program execution.

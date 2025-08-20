@@ -1,0 +1,9 @@
+function [laser_power_in_mW, std_laser_power_in_mW] = PhotodiodeConversionVtomW(laser_power_in_V,std_laser_power_in_V)
+
+%Calibration for ThorLabs photodiode
+%Calibrated by Jon and Masashi
+
+laser_power_in_mW = -0.587*laser_power_in_V + 0.305;
+
+%error propagation (CDA)
+std_laser_power_in_mW = -0.587*std_laser_power_in_V + 0.305;

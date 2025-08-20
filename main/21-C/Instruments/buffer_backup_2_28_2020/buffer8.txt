@@ -1,0 +1,35 @@
+REAL POS_GROUND;
+REAL WAIT_TIME;
+REAL POS_TIME;
+
+POS_GROUND = V0; 	!set "start" position
+WAIT_TIME = V1; 	!time to wait
+POS_TIME = V2;		!time for relaxation
+
+TILL IN0.3= 1		!Wait for motion trigger
+
+CALL G_TO_C_TO_G	!executes motion step 1 (detailed below)
+STOP
+
+G_TO_C_TO_G:
+WAIT WAIT_TIME !WAIt for laser and MW irradiation
+GO 0 !Start moving, position programmed by MATLAB
+TILL MST(0).#INPOS !Wait till motion finishes
+OUT(0).2=1 ! Trigger NMR
+WAIT 100
+OUT(0).2=0
+
+WAIT 5000 !Wait
+PTP/w 0, -1300 !Go to NMR Coil position
+GO 0 
+TILL MST(0).#INPOS !Wait till motion finishes
+WAIT 3000
+
+VEL(0) = 10
+ACC(0) = 100
+DEC(0) = 100
+JERK(0) = 1000
+PTP/w 0, POS_GROUND  ! Return to start position
+GO 0
+
+RET			!Returns to call statement, continues program execution.

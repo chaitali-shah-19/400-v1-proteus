@@ -1,0 +1,5 @@
+DISPCH=-2
+ON ^IN (0).0		!Triggered on input 0, change number out of parentheses for different pin.   Ex. IN (0).1 for pin 1
+	DISP "This was pressed."
+	KILL ALL	!Kills motion on all axes
+RET			!End of autoroutine
