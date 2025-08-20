@@ -1,5 +1,6 @@
-myaddress = 'qeg.mit@gmail.com';
-mypassword = 'getmeoutofhere';
+% % hidden for safety
+% myaddress = '';
+% mypassword = '' ;
 
 setpref('Internet','E_mail',myaddress);
 setpref('Internet','SMTP_Server','smtp.gmail.com');
@@ -14,8 +15,9 @@ props.setProperty('mail.smtp.socketFactory.port','465');
 
 
 add={};
-add{1}='qeg.batman@gmail.com';
+add{1}='';
 
 sendmail(add,...
            'Test subject','Test message',...
+
          {'D:/QEG/21-C/SavedImages/sumo_echo4.pptx'});
