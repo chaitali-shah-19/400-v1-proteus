@@ -1,0 +1,14 @@
+QEG GUI
+
+This is the GUI that launches the experimental control software. It is called via the command
+QEG
+
+The user can choose which instrument should be used as pulse sequencer (Pulse Blaster or AWG) and, additionally, if
+all instruments should be simulated (situation when code needs to be developed away from the laboratory).
+
+Preferences are set as soon as the QEG GUI is launched. One can also set the preferences manually by
+using the command:
+setpref('nv')
+
+Preferences are removed using the command:
+rmpref('nv')
