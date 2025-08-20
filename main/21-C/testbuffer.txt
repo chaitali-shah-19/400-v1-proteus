@@ -1,0 +1,7 @@
+# Header: Date, Firmware version, etc.
+#Buf1 (buffer number)
+ACSPL+ program of Buf1
+#Buf2 (buffer number)
+ACSPL+ program of Buf2
+#Buf3 (buffer number)
+ACSPL+ program of Buf3 etc.
