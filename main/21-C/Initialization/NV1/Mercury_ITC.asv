@@ -1,0 +1,90 @@
+classdef Mercury_ITC
+    properties
+        gpib_obj
+        port_name
+    end
+    methods
+        function obj=Mercury_ITC(port_name)
+            obj.gpib_obj=serial(port_name);
+            set(obj.gpib_obj, ...
+     'BaudRate', 9600, ...
+     'DataBits', 8, ...
+     'FlowControl', 'none', ...
+     'Parity', 'none', ...
+     'StopBits', 1, ...
+     'Terminator','LF')
+ fopen(obj.gpib_obj);
+            
+        end
+
+        function temp=ReadTemp(obj)
+            fprintf(obj.gpib_obj,'READ:DEV:MB1.T1:TEMP:SIG:TEMP?');
+            readout=fscanf(obj.gpib_obj);
+            start_ind=strfind(readout,'TEMP');start_ind=start_ind(2)+4;
+            end_ind=strfind(readout,'K');
+            temp=str2num(readout(start_ind+1:end_ind-1));
+        end
+
+        function volt=ReadVoltage(obj)
+            fprintf(obj.gpib_obj,'READ:DEV:MB0.H1:TEMP:SIG:VOLT?');
+            readout=fscanf(obj.gpib_obj);
+            start_ind=strfind(readout,'VOLT');start_ind=start_ind(1)+4;
+            end_ind=strfind(readout,'V');end_ind=end_ind(end);
+            volt=str2num(readout(start_ind+1:end_ind-1));
+        end
+
+        function SetTemp(obj,temp)
+              fprintf(obj.gpib_obj,['SET:DEV:MB1.T1:TEMP:LOOP:TSET:' num2str(temp)]);
+              %fprintf(obj.gpib_obj,'SET:DEV:MB1.T1:TEMP:LOOP:TSET:100.00');
+              readout=fscanf(obj.gpib_obj);
+              pause(0.5);
+        end
+
+        function SetAuto(obj,temp)
+            fprintf(obj.gpib_obj,['SET:DEV:MB1.T1:TEMP:LOOP:ENAB:' temp]);%auto OFF/ON
+            readout=fscanf(obj.gpib_obj);
+            pause(0.5);
+        end
+        
+        function SetHeater(obj,temp)
+            fprintf(obj.gpib_obj,['SET:DEV:MB1.T1:TEMP:LOOP:ENAB:' temp]);%percentage
+            readout=fscanf(obj.gpib_obj);
+            pause(0.5);
+        end
+
+
+        function VoltRead=PS_VoltRead(obj)
+            fprintf(obj.gpib_obj,'VOLT?');
+            VoltStr=fscanf(obj.gpib_obj);
+            VoltRead=str2num(VoltStr);
+        end
+        function PS_VoltSet(obj,Volt_Set)
+            Voltset=round2(Volt_Set*100,1);
+            VoltSetStr=sprintf('su%04d',Voltset);
+            fprintf(obj.gpib_obj,VoltSetStr);
+        end
+        function CurrRead=PS_CurrRead(obj)
+            fprintf(obj.gpib_obj,'CURR?');
+            CurrStr=fscanf(obj.gpib_obj);
+            CurrRead=str2num(CurrStr);
+        end
+        function PS_CurrSet(obj,Curr_Set)
+            CurrSetStr=sprintf('si%04d',Curr_Set*1000);
+            fprintf(obj.gpib_obj,CurrSetStr);
+        end
+        function PS_Close(obj)
+            serialObj = instrfind;
+            s=size(serialObj);
+            for i=1:s(1,2)
+            fclose(serialObj(i));
+            end
+        end
+        function PS_OUTOn(obj)
+            fprintf(obj.gpib_obj,'o1');
+        end
+        function PS_OUTOff(obj)
+            fprintf(obj.gpib_obj,'o0');
+        end
+        
+    end
+end
