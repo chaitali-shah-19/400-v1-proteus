@@ -1,0 +1,113 @@
+classdef PulseSequence < handle
+    
+    properties
+        Channels = [];
+        % Pulse Blaster channels
+        %Channels(3): Laser AOM; PB channel 3
+        %Channels(2): Electron MW controlled via switch; PB channel 2 
+        %Channels(1): Common trigger to Signal Generator and AWG; PB channel 1 
+        %Channels(0): SPD gate; PB channel 0
+        
+        % AWG channels
+        %%%%%Channels(3): 13C RF; AWG channel 3
+        %%%%%%Channels(4): N RF; AWG channel 4
+       
+        SequenceName
+        
+        Subsequences
+    end
+    properties (Transient = true)
+        Listeners
+    end
+    
+    methods
+        function [obj] = PulseSequence(varargin)
+            if nargin == 3,
+                obj.Channels = varargin{1};
+                obj.SequenceName = varargin{2};
+                obj.Listeners = varargin{3};
+                
+                % change the callbacks of the listners,
+                for k=1:numel(obj.Listeners),
+                    if isa(obj.Listeners{k},'event.listener'),
+                        obj.Listeners{1,k}.Callback = @(src,evnt)obj.throwEvent();
+                    end
+                end
+                
+            elseif nargin == 2,
+                
+                obj.Channels = varargin{1};
+                obj.SequenceName = varargin{2};
+                
+                % loop over channels, adding listeners
+                for k=1:length(obj.Channels),         
+                     obj.Listeners{1,k} = ...
+                        addlistener(obj.Channels(k),'PulseSequenceChangedState',@(src,evnt)obj.throwEvent());
+                end
+            end
+        end
+        
+        function [minTime] = GetMinRiseTime(obj)
+            minTime = 1e15; % initialize to something big
+            
+            for j = 1:1:length(obj.Channels)
+                
+                if obj.Channels(j).Pulsed
+               temp = min(obj.Channels(j).RiseTimes);
+               if temp < minTime
+                    minTime = temp;
+               end
+                end 
+            end
+           
+        end
+        
+        function [maxTime] = GetMaxRiseTime(obj)
+            maxTime = 0; %initialize to something small
+            
+            for n = 1:1:length(obj.Channels)
+            if obj.Channels(n).Pulsed
+                temp = max(obj.Channels(n).RiseTimes + obj.Channels(n).RiseDurations);
+                if temp > maxTime
+                    maxTime = temp;
+                end 
+            end
+            end
+         end
+                
+        function [] = throwEvent(obj)
+            
+            notify(obj,'PulseSequenceChangedState');
+        end
+        
+        function [] = copy_seq(obj, obj2) %makes a copy of a channel 
+
+                        obj.Channels = obj2.Channels;
+                        obj.SequenceName = obj2.SequenceName;
+                        
+         end
+        
+    end
+    
+    methods (Static = true)
+        function [obj] = loadobj(a)
+            
+            % add in the listeners, which should not be saved
+            
+            for k=1:numel(a.Channels),
+                a.Listeners{1,k} = ...
+                    addlistener(a.Channels(k),'PulseSequenceChangedState',@(src,evnt)a.throwEvent());
+            end
+            
+            if  sum(strcmp(fieldnames(a),'Listeners')),
+                obj = PulseSequence(a.Channels,a.SequenceName,a.Listeners);
+            else
+                obj = PulseSequence(a.Channels,a.SequenceName);
+            end
+        end
+    end
+    
+    events
+       PulseSequenceChangedState 
+    end
+end

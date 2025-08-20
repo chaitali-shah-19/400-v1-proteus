@@ -1,0 +1,65 @@
+function [] = ProcessSeq(PulseSequence)
+
+%define in psequencer that all pulses referenced to zero, should be
+%multiple of sampling rate of pulse blaster
+%ClockRate of PulseBlaster given = CR
+
+%Start all channels at off
+%Everytime there is an event related to a channel, bitflip operation
+
+%initialize to sth
+Big_matrix_times = [];
+Big_matrix_indices = [];
+
+current_state = dec2bin(0);
+
+for k=1:1:length(PulseSequence.Channels)
+    
+    if PulseSequence.Channels(k).Enable && PulseSequence.Channels(k).Pulsed %pulsed mode
+    
+ Final_times = [];
+    
+ Final_times = PulseSequence.Channels(k).RiseTimes + PulseSequence.Channels(k).RiseDurations;
+ 
+ Unsorted_times = [PulseSequence.Channels(k).RiseTimes Final_times];
+ %Times = [to^1, tf^1, to^2, tf^2, ... to^last, tf^last]
+ Times = sort(Unsorted_times);
+ Channel_ind = k*ones(1,length(Times));
+
+Big_matrix_times = [Big_matrix_times Times];
+Big_matrix_indices = [Big_matrix_indices Channel_ind];
+
+    elseif PulseSequence.Channels(k).Enable && ~PulseSequence.Channels(k).Pulsed %always on mode
+        current_state = dec2bin(bin2dec(current_state)+bitshift(1,k-1))
+       
+    %else, or always off, does not need to do anything
+        
+    end   
+end
+
+final_state = current_state;
+
+[Sorted_big_matrix_times, Ind] = sort(Big_matrix_times)
+Sorted_big_matrix_indices = Big_matrix_indices(Ind)
+
+Sorted_list_states = [current_state];
+
+for k=1:1:length(Sorted_big_matrix_times)
+
+    new_state = SingleBitFlip(current_state, Sorted_big_matrix_indices(k));
+    
+    Sorted_list_states = [Sorted_list_states new_state];
+    
+    current_state = new_state;
+    
+end
+
+delay = 10000; %ns 
+
+Final_sorted_big_matrix_times = [delay diff(Sorted_big_matrix_times) delay]
+Final_sorted_list_states = [Sorted_list_states final_state]
+
+function [new_state] = SingleBitFlip(current_state, channel_to_flip)
+
+new_state = xor(current_state,bitshift(1,channel_to_flip-1)); 
+

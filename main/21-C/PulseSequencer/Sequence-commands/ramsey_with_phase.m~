@@ -1,0 +1,12 @@
+function result_seq = ramsey_with_phase(seq,sample_rate,length_pi_over_2,phase)
+
+seq = ttl_pulse(seq, 2, 2*length_pi_over_2);
+
+seq.Channels(2).Ampmod = [seq.Channels(2).Ampmod ones(1,int64(sample_rate*(2*length_pi_over_2)))];
+%debatable whether I should keep these ones for the whole sequence or put
+%zeros in between pulses
+seq.Channels(2).FreqmodI = [seq.Channels(2).FreqmodI zeros(1,int64(sample_rate*(2*length_pi_over_2)))];
+seq.Channels(2).FreqmodQ = [seq.Channels(2).FreqmodQ zeros(1,int64(sample_rate*(2*length_pi_over_2)))];
+seq.Channels(2).Phasemod = [seq.Channels(2).Phasemod zeros(1, int64(sample_rate*length_pi_ovphase*ones(1,int64(sample_rate*length_pi_over_2))];
+
+result_seq = seq;
