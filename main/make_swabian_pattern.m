@@ -1,0 +1,35 @@
+function [pattern0, pattern1, pattern2, pattern3, pattern4, pattern5, pattern6, pattern7] = ...
+    make_swabian_pattern (stPB, durPB)
+%make patterns required in Swabian format given stPB and durPB from
+%pulseblaster
+
+for j=1:size(stPB,2)
+    b(j,:)=fliplr(dec2bin(stPB(j),8)); % get binary string in 8 channels
+end
+
+for j=1:size(durPB,2)
+    pattern0{j,1}=durPB(j)*1e9;
+    pattern0{j,2}=str2num(b(j,1));
+
+    pattern1{j,1}=durPB(j)*1e9;
+    pattern1{j,2}=str2num(b(j,2));
+
+    pattern2{j,1}=durPB(j)*1e9;
+    pattern2{j,2}=str2num(b(j,3));
+
+    pattern3{j,1}=durPB(j)*1e9;
+    pattern3{j,2}=str2num(b(j,4));
+
+    pattern4{j,1}=durPB(j)*1e9;
+    pattern4{j,2}=str2num(b(j,5));
+
+    pattern5{j,1}=durPB(j)*1e9;
+    pattern5{j,2}=str2num(b(j,6));
+
+    pattern6{j,1}=durPB(j)*1e9;
+    pattern6{j,2}=str2num(b(j,7));
+
+    pattern7{j,1}=durPB(j)*1e9;
+    pattern7{j,2}=str2num(b(j,8));
+end
+end
