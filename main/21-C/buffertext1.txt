@@ -1,0 +1,183 @@
+INT POS_COIL;
+
+INT POS_GROUND;
+
+INT POS_HOME;
+
+INT xx;
+
+INT yy;
+
+INT zz;
+
+INT vel;
+
+
+
+POS_HOME = -10;		!set start and end position
+
+POS_COIL = -930;		!set coil position for NMR
+
+POS_GROUND = -1500
+
+
+
+!TILL IN0.3= 1
+
+xx = TIME
+
+!WAIT 2000
+
+
+
+!LOOP 2
+
+
+
+CALL HOME_TO_COIL	!executes motion step 1 (detailed below)
+
+!WAIT 2000
+
+!PTP/w 0, POS_GROUND
+
+!GO 0
+
+!TILL MST(0).#INPOS
+
+WAIT 2000
+
+!END
+
+
+
+TILL IN0.5 = 1		
+
+CALL COIL_TO_GROUND	!executes motion step 2 
+
+
+
+!TILL IN0.6 = 1	
+
+!CALL GROUND_TO_COIL	!executes motion step 3 
+
+
+
+TILL IN0.7 = 1		
+
+!CALL COIL_TO_HOME	!executes motion step 4 
+
+
+
+
+
+HOME_TO_COIL:
+
+vel = 1
+
+VEL(0) = vel			!Set velocity, acceleration, “deceleration,” and jerk. (10, 100, 1000) 		
+
+ACC(0) = 10* vel		!parameters were recommended by the company, but we will test 
+
+DEC(0) = 10* vel			!what works best for us
+
+JERK(0) = 100*vel	
+
+PTP/w 0, POS_COIL
+
+GO 0
+
+TILL MST(0).#INPOS
+
+yy = TIME
+
+zz=(yy - xx)
+
+!DISP "elapsed time: ", zz
+
+OUT(0).2=1
+
+WAIT 10
+
+OUT(0).2=0
+
+
+
+RET			!Returns to call statement, continues program execution.
+
+
+
+COIL_TO_GROUND:		!analogous to above call.
+
+VEL(0) = 2000
+
+ACC(0) =30000
+
+DEC(0) = 30000
+
+JERK(0) = 200*vel
+
+PTP/w 0, POS_GROUND
+
+GO 0
+
+TILL MST(0).#INPOS
+
+OUT(0).2=1
+
+WAIT 500
+
+OUT(0).2=0
+
+RET
+
+
+
+GROUND_TO_COIL:
+
+VEL(0) = 5
+
+ACC(0) = 100
+
+DEC(0) = 100
+
+JERK(0) = 1000
+
+PTP/w 0, POS_COIL
+
+GO 0
+
+TILL MST(0).#INPOS
+
+OUT(0).2=1
+
+WAIT 500
+
+OUT(0).2=0
+
+RET
+
+
+
+COIL_TO_HOME:
+
+VEL(0) = 10
+
+ACC(0) = 100
+
+DEC(0) = 100
+
+JERK(0) = 1000
+
+PTP/w 0, POS_HOME
+
+GO 0
+
+TILL MST(0).#INPOS
+
+OUT(0).2=1
+
+WAIT 500
+
+OUT(0).2=0
+
+RET
