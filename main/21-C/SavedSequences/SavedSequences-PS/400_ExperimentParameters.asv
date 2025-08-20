@@ -1,0 +1,106 @@
+ <sequence>
+
+        <variables>
+            % these are the variables that can be scanned or switched from the GUI
+            
+            % No Sweep Variable
+            Dummy_Sweep=float(1,-200,1000)
+
+            % Shuttle Parameters
+            Home_Position=float(305, 0, 1000);
+            Coil_Position=float(939, 10, 1019);
+            Velocity=float(7, 1, 2000);
+            Acceleration=float(50, 1, 30000);
+            Jerk=float(500, 1, 800000);
+               
+            % Microwave Parameters
+            MW_Sweep_Freq=float(100,0,20000);
+            MW_Center_Freq=float(2.65e9,2e9,5e9);  %this doubles as center freq
+            MW_Bandwidth=float(20e6,1e3,1e9);   %this doubles bandwidth
+            MW_Amplitude=float(1,0,1.5);
+            SRS_Frequency=float(1e9,0,5e9);
+            MW_Write_Delay = float(20,0,100);
+            
+            % Hyperpolarisation Parameters
+            Hyperpolarisation_Time = float(120,0,700);
+            Polarisation_Sign =float(1,-1,1);
+            LRMirror_HypPos = float(3204, -6000, 6000)
+            UDMirror_HypPos = float(-2868, -6000, 6000)
+
+            % Laser Parameters during Hyperpolarisation
+            LaserPower_Pol = float(7,0,8);
+
+            %NMR Pulse Sequence parameters 
+            Delay_Before_Trigger = float(9,1,50000);
+            TX_Reference_Freq = float(-200,-1e6,1e6); 
+            TX_Offset = float(0,-1e6,1e6); 
+            Pulse_Width_1=float(38, 0, 20000);
+            Pulse_Train_Width=float(38,0,10000);
+            Pulse_Spacing=float(40,0,10000);
+            Acquisition_Time=float(4,0,100000);    
+            ExptTime_Seconds=float(63,0,1e3);
+            Delay_Aft_ReadOut = float(5,1,1000);
+
+            % Delay parameter for carbon T1 experiments
+            T1_Exp = float(0,0,1)
+
+            %Laser Control Parameters at High-field
+            Laser_On_Time = float(0,0,1000);
+            Laser_On_Duration = float(0,0,1000);
+            Laser_Power = float(0,0,8);
+            LRMirror_LaserPos = float(4908, -6000, 6000)
+            UDMirror_LaserPos = float(-3770, -6000, 6000)
+
+            Gap_Btwn_Expts = float(5,1,1000);
+                 
+        </variables>
+
+        <shaped_pulses>
+
+        </shaped_pulses>
+
+        <instructions>
+            channel_vec = zeros(1,46);
+            channel_vec(1:6) = 1; %All Swabian bits - 0 :MW Switch, 1: ACS Shuttler, 2: Laser, 3: VNMR trigger, 4 : Fibre laser, 5 : ProteusAWT TRIG2
+            channel_vec(10) = 1; % variables in set_laser_times 
+            channel_vec(12) = 1; % variables in set_acs_position2
+            channel_vec(38) = 1; % variable in  set_nmr_parameters.m 
+            channel_vec(39) = 1; % variable in  set_awt.m 
+            channel_vec(46) = 1; %variable in set_tasktable2.m
+
+            PSeq = enable_channels(PSeq, 1:46,channel_vec);
+
+             %----------------------- AWT and SRS for MW --------------------------
+
+            PSeq = set_awt(PSeq,MW_Center_Freq,MW_Bandwidth,MW_Amplitude,MW_Sweep_Freq,SRS_Frequency, MW_Write_Delay);
+            
+            %% --------------------NMR PARAMETERS--------------------------
+            PSeq = set_nmr(PSeq, TX_Reference_Freq, TX_Offset, Pulse_Width_1, Pulse_Train_Width, Pulse_Spacing, Acquisition_Time, ExptTime_Seconds);
+
+            %% -------------------------TASK TABLE--------------------------
+            PSeq = set_tasktable2(PSeq,Hyperpolarisation_Time,Polarisation_Sign, LRMirror_HypPos, UDMirror_HypPos);
+            
+            %% ------------------ ACS --------------------------------------
+            ShuttlerDownTime = 91; %91 by default
+            DownTime = ShuttlerDownTime + Delay_Before_Trigger;
+            ShuttlerUpTime = 127; %127 by default
+            UpTime = Delay_Aft_ReadOut+ShuttlerUpTime+Gap_Btwn_Expts;
+            PSeq = set_acs_position2(PSeq, Home_Position,Velocity,Acceleration,Jerk,Coil_Position,Hyperpolarisation_Time, DownTime, UpTime);
+
+            %% ------------------- LASER ----------------------------------
+            PSeq = set_laser_times2(PSeq, LRMirror_LaserPos, UDMirror_LaserPos, Laser_On_Duration,Laser_On_Time,Laser_Power,LaserPower_Pol, T1_Exp);
+            
+            %% ------------------- TTL pulses ----------------------------
+            
+            PSeq = ttl_pulse(PSeq,2, 20e-3);        %ACS
+            PSeq = ttl_pulse(PSeq, 6, 10e-3);       %proteus AWG 
+            PSeq = ttl_pulse(PSeq, 1,Hyperpolarisation_Time,-10e-3,1);        %MW SWITCH
+            %PSeq = ttl_pulse(PSeq,3,Hyperpolarisation_Time,-Hyperpolarisation_Time,1);      %Laser
+            %PSeq = ttl_pulse(PSeq,3,Laser_On_Duration,Laser_On_Time+DownTime,1); % Turn Laser On at High Field
+            %PSeq = ttl_pulse(PSeq, 4, 1e-3); %triggers VNMR pulse sequence and acquisition  
+
+     
+</instructions>
+
+</sequence>
+  
